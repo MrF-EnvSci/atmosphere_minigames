@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Up, Up, and Away! — Altitude & Air Pressure Virtual Lab</title>
+  <style>
+    :root{
+      --bg:#0f172a;        /* slate-900 */
+      --panel:#111827;     /* gray-900 */
+      --ink:#e5e7eb;       /* gray-200 */
+      --accent:#38bdf8;    /* sky-400 */
+      --accent2:#f59e0b;   /* amber-500 */
+      --good:#16a34a;      /* green-600 */
+      --warn:#d97706;      /* amber-600 */
+      --bad:#dc2626;       /* red-600 */
+      --muted:#94a3b8;     /* slate-400 */
+    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    h1{font-size:clamp(1.4rem,2.4vw,2rem);margin:0 0 8px}
+    p.lead{color:var(--muted);margin:0 0 16px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+    .tab-btn{appearance:none;border:1px solid #334155;background:#0b1220;color:var(--ink);padding:10px 14px;border-radius:8px;cursor:pointer}
+    .tab-btn[aria-selected="true"], .tab-btn:hover{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in oklab, var(--accent) 35%, transparent)}
+
+    .panel{display:none;background:var(--panel);border:1px solid #1f2937;border-radius:12px;padding:16px;margin-bottom:18px}
+    .panel.active{display:block}
+
+    .row{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:900px){.row{grid-template-columns:1.2fr 1fr}}
+
+    .card{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px}
+    .label{font-size:.9rem;color:var(--muted);margin-bottom:6px}
+    .readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:8px}
+    .pill{border:1px solid #334155;background:#0a0f1c;border-radius:10px;padding:8px 10px}
+
+    /* Balloon scene */
+    .sky{position:relative;height:360px;background:linear-gradient(#60a5fa,#1d4ed8);border-radius:12px;overflow:hidden;border:1px solid #1e3a8a}
+    .ground{position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(#14532d,#064e3b)}
+    .balloon{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);width:120px;height:150px;border-radius:55% 55% 50% 50%/60% 60% 40% 40%;background:radial-gradient(circle at 40% 35%, #fca5a5, #ef4444);box-shadow:0 12px 20px rgba(0,0,0,.3)}
+    .string{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);width:2px;height:90px;background:#e5e7eb}
+    .pop{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:clamp(1.2rem,4vw,2.2rem);color:#fff;background:#ef4444;padding:6px 10px;border-radius:8px;display:none}
+
+    /* Plane scene */
+    .skies{position:relative;height:360px;background:linear-gradient(#93c5fd,#1e3a8a);border-radius:12px;border:1px solid #1e3a8a;overflow:hidden}
+    .plane{position:absolute;left:12%;top:55%;transform:translateY(-50%);width:200px;height:70px;background:#e5e7eb;border-radius:40px;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+    .wing{position:absolute;left:28px;top:36px;width:120px;height:18px;background:#d1d5db;border-radius:10px;transform:skewX(-12deg)}
+    .window{position:absolute;top:18px;left:22px;width:12px;height:12px;background:#0ea5e9;border-radius:50%}
+    .window:nth-child(2){left:48px}
+    .window:nth-child(3){left:74px}
+    .window:nth-child(4){left:100px}
+    .window:nth-child(5){left:126px}
+
+    .alt-marker{position:absolute;right:12px;top:12px;background:#0b1220;border:1px solid #334155;border-radius:10px;padding:8px 10px;color:var(--ink)}
+
+    .status{border-radius:10px;padding:10px;margin-top:10px}
+    .ok{background:color-mix(in oklab, var(--good) 18%, transparent);border:1px solid var(--good)}
+    .warn{background:color-mix(in oklab, var(--warn) 18%, transparent);border:1px solid var(--warn)}
+    .bad{background:color-mix(in oklab, var(--bad) 18%, transparent);border:1px solid var(--bad)}
+
+    .footer{color:var(--muted);font-size:.9rem;margin-top:8px}
+    .btn-reset{appearance:none;border:1px solid #334155;background:#0b1220;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn-reset:hover{border-color:var(--accent)}
+
+    .sr-only{position:absolute !important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🎈 Up, Up, and Away! — Altitude &amp; Air Pressure Virtual Lab</h1>
+      <p class="lead">Explore how <strong>air pressure</strong> changes with <strong>altitude</strong> and what that means for balloons and airplanes. Use the controls, observe the readouts, and answer your teacher’s analysis prompts.</p>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Activity Modes">
+      <button class="tab-btn" role="tab" id="tab-balloon" aria-selected="true" aria-controls="panel-balloon">Balloon Ascent</button>
+      <button class="tab-btn" role="tab" id="tab-plane" aria-selected="false" aria-controls="panel-plane">Airplane Cabin</button>
+    </nav>
+
+    <!-- BALLOON PANEL -->
+    <section id="panel-balloon" class="panel active" role="tabpanel" aria-labelledby="tab-balloon">
+      <div class="row">
+        <div class="card">
+          <div class="label">Controls</div>
+          <label for="altitude" class="sr-only">Altitude (km)</label>
+          <input id="altitude" type="range" min="0" max="12" step="0.1" value="0" style="width:100%" aria-describedby="altHelp" />
+          <div id="altHelp" class="footer">Drag to raise the balloon from sea level (0 km) up to the lower stratosphere (~12 km).</div>
+
+          <div class="readouts" style="margin-top:10px">
+            <div class="pill">Altitude: <strong><span id="r-alt">0.0</span> km</strong></div>
+            <div class="pill">Outside Pressure: <strong><span id="r-pres">101.3</span> kPa</strong></div>
+            <div class="pill">Balloon Size vs. Sea Level: <strong><span id="r-size">1.00×</span></strong></div>
+            <div class="pill">Status: <strong><span id="r-status">Stable</span></strong></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Visualization</div>
+          <div class="sky" aria-label="Balloon visualization">
+            <div class="pop" id="pop">POP!</div>
+            <div class="balloon" id="balloon"></div>
+            <div class="string" id="string"></div>
+            <div class="ground"></div>
+          </div>
+          <div class="footer">Toy model assumptions: constant temperature in balloon; outside pressure falls with altitude using a simple exponential model. Real atmosphere is more complex.</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="label">Reflection Prompts</div>
+        <ol>
+          <li>Why does the balloon expand as altitude increases? Relate your answer to outside pressure.</li>
+          <li>At what approximate altitude did the balloon burst in this model? Why?</li>
+          <li>How would colder temperatures aloft change the behavior of a real balloon?</li>
+        </ol>
+        <button class="btn-reset" id="resetBalloon" type="button">Reset Balloon</button>
+      </div>
+    </section>
+
+    <!-- PLANE PANEL -->
+    <section id="panel-plane" class="panel" role="tabpanel" aria-labelledby="tab-plane">
+      <div class="row">
+        <div class="card">
+          <div class="label">Controls</div>
+          <label for="altFlight" class="sr-only">Aircraft Altitude (km)</label>
+          <input id="altFlight" type="range" min="0" max="12" step="0.1" value="9.5" style="width:100%" aria-describedby="altFlightHelp" />
+          <div id="altFlightHelp" class="footer">Set aircraft altitude from takeoff (0 km) to cruise (~10–12 km).</div>
+
+          <fieldset style="margin-top:10px">
+            <legend class="label">Cabin Pressure Setting (Equivalent Altitude)</legend>
+            <label style="display:block;margin-bottom:6px"><input type="radio" name="cabin" value="0" checked> Sea level (~0 km)</label>
+            <label style="display:block;margin-bottom:6px"><input type="radio" name="cabin" value="1.8"> ~6,000 ft (~1.8 km)</label>
+            <label style="display:block;margin-bottom:6px"><input type="radio" name="cabin" value="2.4"> ~8,000 ft (~2.4 km)</label>
+            <label style="display:block;margin-bottom:6px"><input type="radio" name="cabin" value="OUT"> Match outside air (no pressurization)</label>
+          </fieldset>
+
+          <div class="readouts" style="margin-top:10px">
+            <div class="pill">Aircraft Altitude: <strong><span id="f-alt">9.5</span> km</strong></div>
+            <div class="pill">Outside Pressure: <strong><span id="f-out">--</span> kPa</strong></div>
+            <div class="pill">Cabin Pressure: <strong><span id="f-in">--</span> kPa</strong></div>
+            <div class="pill">ΔP (Inside − Outside): <strong><span id="f-dp">--</span> kPa</strong> (<span id="f-dppsi">--</span> psi)</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Visualization</div>
+          <div class="skies" aria-label="Airplane visualization">
+            <div class="plane">
+              <div class="wing"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+            </div>
+            <div class="alt-marker">ALT: <span id="altChip">9.5</span> km</div>
+          </div>
+          <div id="flightStatus" class="status ok" aria-live="polite">Passengers comfortable. Settings within typical cabin range.</div>
+          <div class="footer">Toy model: simple exponential pressure drop with scale height. Real aircraft limits and physiology are more nuanced.</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="label">Reflection Prompts</div>
+        <ol>
+          <li>Why is pressurization required at cruise altitude? Explain using pressure differences.</li>
+          <li>What trade‑offs exist between passenger comfort and aircraft structural loads?</li>
+          <li>Describe symptoms passengers might feel if cabin pressure is set too low (too “high” equivalent altitude).</li>
+        </ol>
+        <button class="btn-reset" id="resetPlane" type="button">Reset Airplane</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="label">Teacher Notes</div>
+      <ul>
+        <li>Designed to run standalone (GitHub Pages) or embedded in Canvas via an <code>&lt;iframe&gt;</code>.</li>
+        <li>All code is self‑contained (no external libraries).</li>
+        <li>Sliders and radios are keyboard accessible; status messages use <code>aria-live</code>.</li>
+      </ul>
+      <details>
+        <summary>Embed in Canvas (example)</summary>
+        <pre style="white-space:pre-wrap;background:#0b1220;border:1px solid #334155;border-radius:8px;padding:10px;overflow:auto">&lt;iframe src="https://YOUR_GITHUB_USERNAME.github.io/Altitude_Pressure_Virtual_Lab.html" title="Altitude &amp; Pressure Lab" width="100%" height="740" style="border:1px solid #334155;border-radius:10px" allowfullscreen loading="lazy"&gt;&lt;/iframe&gt;</pre>
+      </details>
+    </section>
+  </div>
+
+  <script>
+    // ---------- Shared physics helpers (toy model) ----------
+    function pressureAtKPa(altKm){
+      // Exponential barometric approximation: P = P0 * exp(-alt/H)
+      var P0 = 101.325; // kPa at sea level
+      var H = 8.5;      // scale height (km), simplified
+      return P0 * Math.exp(-altKm / H);
+    }
+
+    // ---------- Tabs ----------
+    var tabBalloon = document.getElementById('tab-balloon');
+    var tabPlane   = document.getElementById('tab-plane');
+    var panelBalloon = document.getElementById('panel-balloon');
+    var panelPlane   = document.getElementById('panel-plane');
+
+    function activate(tab){
+      if(tab === 'balloon'){
+        tabBalloon.setAttribute('aria-selected','true');
+        tabPlane.setAttribute('aria-selected','false');
+        panelBalloon.classList.add('active');
+        panelPlane.classList.remove('active');
+        tabBalloon.focus();
+      } else {
+        tabPlane.setAttribute('aria-selected','true');
+        tabBalloon.setAttribute('aria-selected','false');
+        panelPlane.classList.add('active');
+        panelBalloon.classList.remove('active');
+        tabPlane.focus();
+      }
+    }
+    tabBalloon.addEventListener('click', function(){activate('balloon')});
+    tabPlane.addEventListener('click', function(){activate('plane')});
+    tabBalloon.addEventListener('keydown', function(e){ if(e.key==='ArrowRight') activate('plane'); });
+    tabPlane.addEventListener('keydown',   function(e){ if(e.key==='ArrowLeft')  activate('balloon'); });
+
+    // ---------- Balloon model ----------
+    var altSlider = document.getElementById('altitude');
+    var rAlt  = document.getElementById('r-alt');
+    var rPres = document.getElementById('r-pres');
+    var rSize = document.getElementById('r-size');
+    var rStat = document.getElementById('r-status');
+    var balloon = document.getElementById('balloon');
+    var stringEl = document.getElementById('string');
+    var popEl = document.getElementById('pop');
+
+    var baseP = pressureAtKPa(0);
+    var baseW = 120; // px width baseline
+    var baseH = 150; // px height baseline
+
+    function updateBalloon(){
+      var alt = parseFloat(altSlider.value);
+      var P = pressureAtKPa(alt);
+      var sizeRatio = Math.pow(baseP / P, 1/3); // V ~ 1/P, radius ~ (1/P)^(1/3)
+      var w = baseW * sizeRatio;
+      var h = baseH * sizeRatio;
+      var burstRatio = 2.0; // simple threshold
+      var popped = sizeRatio >= burstRatio;
+
+      rAlt.textContent  = alt.toFixed(1);
+      rPres.textContent = P.toFixed(1);
+      rSize.textContent = sizeRatio.toFixed(2) + '×';
+
+      if(popped){
+        balloon.style.display = 'none';
+        stringEl.style.display = 'none';
+        popEl.style.display = 'block';
+        rStat.textContent = 'Burst!';
+      } else {
+        balloon.style.display = 'block';
+        stringEl.style.display = 'block';
+        popEl.style.display = 'none';
+        balloon.style.width = w + 'px';
+        balloon.style.height = h + 'px';
+        rStat.textContent = (sizeRatio > 1.2 ? 'Expanding' : 'Stable');
+      }
+    }
+    altSlider.addEventListener('input', updateBalloon);
+    document.getElementById('resetBalloon').addEventListener('click', function(){ altSlider.value = 0; updateBalloon(); });
+    updateBalloon();
+
+    // ---------- Plane model ----------
+    var altFlight = document.getElementById('altFlight');
+    var fAlt = document.getElementById('f-alt');
+    var fOut = document.getElementById('f-out');
+    var fIn  = document.getElementById('f-in');
+    var fDP  = document.getElementById('f-dp');
+    var fDPpsi = document.getElementById('f-dppsi');
+    var altChip = document.getElementById('altChip');
+    var statusBox = document.getElementById('flightStatus');
+    var cabinRadios = Array.prototype.slice.call(document.querySelectorAll('input[name="cabin"]'));
+
+    function cabinSettingKm(){
+      var r = cabinRadios.find(function(x){return x.checked});
+      if(!r) return 0;
+      return (r.value==='OUT') ? 'OUT' : parseFloat(r.value);
+    }
+
+    function updatePlane(){
+      var alt = parseFloat(altFlight.value);
+      var Pout = pressureAtKPa(alt);
+      var cab = cabinSettingKm();
+      var Pin = (cab==='OUT') ? Pout : pressureAtKPa(cab);
+      var dP = Pin - Pout; // kPa
+      var dPpsi = dP * 0.1450377377; // psi
+
+      fAlt.textContent = alt.toFixed(1);
+      fOut.textContent = Pout.toFixed(1);
+      fIn.textContent  = Pin.toFixed(1);
+      fDP.textContent  = dP.toFixed(1);
+      fDPpsi.textContent = dPpsi.toFixed(2);
+      altChip.textContent = alt.toFixed(1);
+
+      // Simple safety logic (toy thresholds)
+      var msg = '';
+      var cls = 'ok';
+      var hypoxiaRisk = Pin < 75;      // ~8,000 ft equivalent
+      var structuralWarn = dPpsi > 8;  // ~8 psi typical range
+      var structuralBad  = dPpsi > 9.5;
+
+      if(cab==='OUT' && alt >= 3){ hypoxiaRisk = true; }
+
+      if(structuralBad || (hypoxiaRisk && dPpsi>8.5)){
+        cls = 'bad';
+        msg = 'Danger: Unsafe pressure configuration. Adjust cabin to ~0–2.4 km equivalent and reduce ΔP if necessary.';
+      } else if(structuralWarn || hypoxiaRisk){
+        cls = 'warn';
+        msg = 'Caution: Comfort/oxygen or structural limits near threshold. Tweak cabin setting.';
+      } else {
+        cls = 'ok';
+        msg = 'Passengers comfortable. Settings within typical cabin range.';
+      }
+
+      statusBox.className = 'status ' + cls;
+      statusBox.textContent = msg;
+    }
+
+    altFlight.addEventListener('input', updatePlane);
+    cabinRadios.forEach(function(r){ r.addEventListener('change', updatePlane); });
+    document.getElementById('resetPlane').addEventListener('click', function(){
+      altFlight.value = 9.5;
+      cabinRadios.forEach(function(r){ r.checked = (r.value==='0'); });
+      updatePlane();
+    });
+    updatePlane();
+  </script>
+</body>
+</html>
