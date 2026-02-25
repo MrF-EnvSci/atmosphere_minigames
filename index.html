@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atmosphere Mini‑Games & Virtual Labs</title>
+  <style>
+    :root { --ink:#0f172a; --muted:#475569; --accent:#2563eb; --bg:#ffffff; --card:#f8fafc; }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    h1{font-size:clamp(1.4rem,2.4vw,2.1rem);margin:.2rem 0 .6rem}
+    .lead{color:var(--muted);margin:.2rem 0 1rem}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:900px){.grid{grid-template-columns:1.1fr 1fr}}
+    .card{background:var(--card);border:1px solid #e2e8f0;border-radius:12px;padding:14px}
+    a.button{display:inline-block;padding:10px 14px;border-radius:8px;border:1px solid #cbd5e1;text-decoration:none;color:var(--ink)}
+    a.button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .iframe-wrap{aspect-ratio:16/9;width:100%;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden}
+    iframe{width:100%;height:100%;border:0}
+    code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:0 .25rem}
+    ul{margin:.5rem 0 .75rem .9rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Atmosphere Mini‑Games & Virtual Labs</h1>
+      <p class="lead">Interactive simulations for Environmental Science: air pressure, altitude, cabin pressurization, and more.</p>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>🎈 Up, Up, and Away! — Altitude & Air Pressure Lab</h2>
+        <p>Explore how <strong>air pressure decreases with altitude</strong>, how a <strong>balloon expands</strong> and can burst, and why airplanes must <strong>pressurize the cabin</strong> at cruise.</p>
+        <p>
+          <a class="button primary" href="Altitude_Pressure_Virtual_Lab.html">Open Full‑Screen</a>
+          <a class="button" href="#embed">Jump to Embed</a>
+        </p>
+        <div class="iframe-wrap" id="embed">
+          <iframe src="Altitude_Pressure_Virtual_Lab.html" title="Altitude & Pressure Lab" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h3>How to use this in Canvas</h3>
+        <ol>
+          <li>Enable <strong>GitHub Pages</strong> for this repo (Settings → Pages → Source: <em>Main</em>).</li>
+          <li>Copy your Pages URL. It will look like:<br>
+            <code>https://YOUR_USERNAME.github.io/atmosphere_minigames/</code>
+          </li>
+          <li>Embed the lab on a Canvas Page using an <code>&lt;iframe&gt;</code>:
+            <pre><code>&lt;iframe src="https://YOUR_USERNAME.github.io/atmosphere_minigames/Altitude_Pressure_Virtual_Lab.html" title="Altitude &amp; Pressure Lab" width="100%" height="740" style="border:1px solid #e2e8f0;border-radius:10px" allowfullscreen loading="lazy"&gt;&lt;/iframe&gt;</code></pre>
+          </li>
+        </ol>
+        <p><em>Tip:</em> You can also link directly to <code>index.html</code> for a landing page with an embedded view.</p>
+      </aside>
+    </div>
+
+    <section class="card">
+      <h3>Teacher Prompts (copy into Canvas assignment)</h3>
+      <ol>
+        <li>Why does the balloon’s volume increase as altitude increases? Refer to external vs. internal pressure.</li>
+        <li>At what approximate altitude does the balloon burst in this model? What real‑world factors could change that point?</li>
+        <li>Explain why commercial aircraft cabins are kept near ~8,000 ft equivalent pressure. What happens if it’s set too low or if ΔP is too high?</li>
+        <li>Connect one finding from this lab to human health or ecosystem impacts (AQI, ozone, or long‑term change).</li>
+      </ol>
+    </section>
+
+    <footer class="card">
+      <p><small>© 2026 Atmosphere Mini‑Games. This page contains no external libraries; all code is static for easy hosting on GitHub Pages and embedding in Canvas.</small></p>
+    </footer>
+  </div>
+</body>
+</html>
